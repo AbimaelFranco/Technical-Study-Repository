@@ -1,0 +1,18 @@
+%% Secuencia de telemetria con QoS 1 y reintento
+sequenceDiagram
+    autonumber
+    participant S as Sensor
+    participant M as MCU
+    participant G as Gateway
+    participant B as Broker MQTT
+    participant D as Base de datos
+    S->>M: lectura (1-Wire / I2C)
+    M->>M: valida rango y CRC
+    M->>G: mensaje UART {sensor, valor, seq}
+    G->>G: agrega timestamp y device_id
+    G->>B: PUBLISH QoS 1 (telemetry/tractor01/temp)
+    B->>D: INSERT (device_id, seq unico)
+    B-->>G: PUBACK
+    Note over G,B: Si no llega PUBACK: reintento y buffer local
+    G->>B: PUBLISH duplicado (mismo seq)
+    B->>D: upsert ignora duplicado

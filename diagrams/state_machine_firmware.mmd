@@ -1,0 +1,17 @@
+%% Maquina de estados del firmware de monitoreo (ver examples/c/state_machine.c)
+stateDiagram-v2
+    [*] --> INIT
+    INIT --> SELF_TEST: perifericos listos
+    SELF_TEST --> SAMPLING: sensores presentes
+    SELF_TEST --> FAULT: sensor ausente
+    SAMPLING --> VALIDATE: tick del timer
+    VALIDATE --> TRANSMIT: lectura valida
+    VALIDATE --> DEGRADED: fuera de rango
+    DEGRADED --> SAMPLING: marca calidad = BAD
+    TRANSMIT --> SAMPLING: enviado
+    TRANSMIT --> NO_LINK: sin ACK del gateway
+    NO_LINK --> SAMPLING: enlace recuperado
+    NO_LINK --> SAFE_STATE: timeout largo
+    FAULT --> SELF_TEST: reintento
+    FAULT --> SAFE_STATE: reintentos agotados
+    SAFE_STATE --> [*]: reset por watchdog

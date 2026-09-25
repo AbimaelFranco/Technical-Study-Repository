@@ -1,0 +1,32 @@
+%% Topologias de UART, I2C, 1-Wire y CAN
+flowchart TB
+    subgraph UART["UART: punto a punto, TX cruzado con RX"]
+        direction LR
+        U1["MCU<br/>TX RX GND"] -- "TX -> RX" --> U2["GPS / modulo<br/>RX TX GND"]
+        U2 -- "TX -> RX" --> U1
+    end
+
+    subgraph I2C["I2C: bus compartido, SDA + SCL con pull-ups"]
+        direction LR
+        M["Maestro MCU"] --- BUS["SDA / SCL<br/>pull-up a VCC"]
+        BUS --- A["0x48 ADC"]
+        BUS --- B["0x68 IMU"]
+        BUS --- C["0x76 Presion"]
+    end
+
+    subgraph OW["1-Wire: un hilo de datos + GND, un pull-up"]
+        direction LR
+        H["Maestro MCU<br/>GPIO"] --- W["DQ (pull-up 4.7k tipico)"]
+        W --- D1["DS18B20 ROM 1"]
+        W --- D2["DS18B20 ROM 2"]
+        W --- D3["DS18B20 ROM 3"]
+    end
+
+    subgraph CAN["CAN: par diferencial CANH/CANL, terminacion en extremos"]
+        direction LR
+        T1(["120 ohm"]) --- CB["CANH / CANL"]
+        CB --- N1["Nodo ECU + transceptor"]
+        CB --- N2["Nodo gateway + transceptor"]
+        CB --- N3["Nodo sensor + transceptor"]
+        CB --- T2(["120 ohm"])
+    end

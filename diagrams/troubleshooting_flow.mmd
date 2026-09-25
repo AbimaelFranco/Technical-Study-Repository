@@ -1,0 +1,22 @@
+%% Arbol de diagnostico general: de la capa fisica al dashboard
+flowchart TD
+    START(["Falla: no hay dato / dato incorrecto"]) --> P1{"Sensor con<br/>alimentacion correcta?"}
+    P1 -- No --> F1["Medir VCC y GND con multimetro<br/>revisar fusible, conector, polaridad"]
+    P1 -- Si --> P2{"Bus detecta el<br/>dispositivo?"}
+    P2 -- No --> F2["I2C: i2cdetect, pull-ups, direccion<br/>1-Wire: pull-up, ROM search<br/>CAN: terminacion 120 ohm, bitrate<br/>UART: TX/RX cruzados, baudrate"]
+    P2 -- Si --> P3{"Valor en rango<br/>plausible?"}
+    P3 -- No --> F3["Sensor desconectado, ruido, calibracion,<br/>ADC saturado, unidades incorrectas"]
+    P3 -- Si --> P4{"Firmware / gateway<br/>procesa y envia?"}
+    P4 -- No --> F4["Logs: journalctl, dmesg<br/>permisos /dev/tty*, watchdog, servicio caido"]
+    P4 -- Si --> P5{"Llega al servidor?"}
+    P5 -- No --> F5["ping, DNS, ss -tulpn, firewall, TLS<br/>credenciales del broker, buffer local"]
+    P5 -- Si --> P6{"Se ve en el dashboard?"}
+    P6 -- No --> F6["Consulta SQL, zona horaria, filtros,<br/>topic incorrecto, timestamps, duplicados"]
+    P6 -- Si --> OK(["Resuelto: documentar causa raiz"])
+
+    F1 --> START
+    F2 --> START
+    F3 --> START
+    F4 --> START
+    F5 --> START
+    F6 --> START

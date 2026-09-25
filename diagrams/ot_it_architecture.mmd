@@ -1,0 +1,18 @@
+%% Segmentacion OT/IT inspirada en el modelo Purdue (referencia conceptual, no certificacion IEC 62443)
+flowchart TB
+    L5["Nivel 4-5: IT empresarial<br/>ERP, correo, BI"]
+    L35["Nivel 3.5: DMZ industrial<br/>broker, historiador replica, jump host"]
+    L3["Nivel 3: operaciones<br/>servidor SCADA/MES, historiador"]
+    L2["Nivel 2: supervision<br/>HMI, SCADA"]
+    L1["Nivel 1: control<br/>PLC, gateway edge, MCU"]
+    L0["Nivel 0: proceso<br/>sensores, actuadores, motores"]
+
+    L0 --> L1 --> L2 --> L3 --> L35 --> L5
+
+    FW1{{"Firewall IT/DMZ"}}
+    FW2{{"Firewall DMZ/OT"}}
+    L5 -.- FW1 -.- L35
+    L35 -.- FW2 -.- L3
+
+    NOTE["Regla: los datos suben (telemetria);<br/>los comandos hacia abajo solo con<br/>autorizacion y diseno validado.<br/>Internet nunca llega a niveles 0-2."]
+    L35 --- NOTE

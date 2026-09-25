@@ -1,0 +1,43 @@
+%% Arquitectura completa de monitoreo de maquinaria (vista general)
+flowchart LR
+    subgraph CAMPO["Campo - maquinaria (OT)"]
+        direction TB
+        S1["DS18B20<br/>1-Wire"]
+        S2["Acelerometro<br/>I2C"]
+        S3["Corriente / presion<br/>ADC"]
+        ECU["ECU tractor<br/>CAN J1939"]
+        MCU["Nodo MCU<br/>firmware C/C++"]
+        S1 --> MCU
+        S2 --> MCU
+        S3 --> MCU
+    end
+
+    subgraph EDGE["Borde (edge)"]
+        direction TB
+        GW["Gateway Linux<br/>Raspberry Pi + Python"]
+        BUF[("Buffer local<br/>SQLite")]
+        GW <--> BUF
+    end
+
+    subgraph DMZ["DMZ / frontera OT-IT"]
+        FW{{"Firewall<br/>solo salida, ACL"}}
+    end
+
+    subgraph IT["Servidor (IT)"]
+        direction TB
+        BRK["Broker MQTT<br/>TLS"]
+        API["API REST<br/>Django / FastAPI"]
+        DB[("PostgreSQL<br/>series de tiempo")]
+        DASH["Dashboard<br/>Grafana / Django"]
+        ALR["Motor de alertas"]
+        BRK --> API --> DB
+        DB --> DASH
+        API --> ALR
+    end
+
+    MCU -- "UART / RS-485" --> GW
+    ECU -- "CAN (listen-only)" --> GW
+    GW -- "MQTT/TLS 8883<br/>(o HTTPS)" --> FW
+    FW --> BRK
+    ALR -- "correo / chat" --> USR(["Operador / mantenimiento"])
+    DASH --> USR
