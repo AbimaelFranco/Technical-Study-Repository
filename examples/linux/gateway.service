@@ -1,0 +1,37 @@
+# gateway.service - unidad systemd para un gateway Python de telemetria
+# Instalar (Linux con systemd):
+#   sudo cp gateway.service /etc/systemd/system/gateway.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now gateway.service     # arranca ahora y en cada boot
+#   systemctl status gateway.service                # estado
+#   journalctl -u gateway.service -f                # logs en vivo (Ctrl+C para salir)
+#   sudo systemctl restart gateway.service          # tras cambiar codigo/configuracion
+#
+# Las rutas y el usuario son EJEMPLOS: ajustalos a tu instalacion.
+
+[Unit]
+Description=Gateway de telemetria de maquinaria
+# Esperar a la red y a que exista el dispositivo si se usa un puerto serial fijo
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=gateway
+# Grupo suplementario para acceder al puerto serial (dialout en Debian/Ubuntu/Pi OS)
+SupplementaryGroups=dialout
+WorkingDirectory=/opt/gateway
+# Variables de entorno (secretos en un archivo con permisos 600, no en el repositorio)
+EnvironmentFile=/etc/gateway/gateway.env
+# python del entorno virtual del proyecto (evita depender del python del sistema)
+ExecStart=/opt/gateway/.venv/bin/python -u /opt/gateway/gateway.py
+# Reiniciar ante fallos, esperando 5 s para no entrar en un ciclo de reinicios rapido
+Restart=on-failure
+RestartSec=5
+# Endurecimiento basico
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
