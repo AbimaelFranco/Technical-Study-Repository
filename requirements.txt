@@ -1,0 +1,8 @@
+# Dependencias opcionales de los ejemplos de examples/python
+# (los scripts 01-04, 07-10, can_j1939_decode.py, vibration_anomaly.py y mock_api_server.py solo usan la libreria estandar)
+pyserial>=3.5        # 05_serial_reader.py
+requests>=2.31       # 06_post_to_api.py
+# Solo con hardware / broker real (no necesarias para las demos):
+# smbus2>=0.4        # i2c_multisensor.py en Raspberry Pi
+# paho-mqtt>=2.0     # mqtt_publisher.py (API VERSION2)
+# python-can>=4.0    # lectura CAN en gateway (ver docs/14, caso C)
