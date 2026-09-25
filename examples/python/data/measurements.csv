@@ -1,0 +1,12 @@
+timestamp,device_id,sensor,value,unit
+2026-03-01T06:00:00,tractor01,temp_motor,78.5,C
+2026-03-01T06:00:01,tractor01,temp_motor,79.0,C
+2026-03-01T06:00:02,tractor01,temp_motor,79.6,C
+2026-03-01T06:00:03,tractor01,temp_motor,,C
+2026-03-01T06:00:04,tractor01,temp_motor,80.4,C
+2026-03-01T06:00:00,tractor01,rpm,1850,rpm
+2026-03-01T06:00:01,tractor01,rpm,1862,rpm
+2026-03-01T06:00:02,tractor01,rpm,abc,rpm
+2026-03-01T06:00:00,bomba02,vib_rms,2.1,mm/s
+2026-03-01T06:00:01,bomba02,vib_rms,2.3,mm/s
+2026-03-01T06:00:02,bomba02,vib_rms,7.9,mm/s
