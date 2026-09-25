@@ -1,0 +1,327 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Caso realista: monitoreo de motor de bomba y tractor",
+    "output": "architecture_case.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "campo",
+        "label": "Campo: sensores a MCU",
+        "focus": [
+          "temp",
+          "vib",
+          "mcu",
+          "gw"
+        ],
+        "note": "1-Wire e I2C hacia el microcontrolador; UART/USB hacia el gateway."
+      },
+      {
+        "id": "can",
+        "label": "Bus CAN del tractor",
+        "focus": [
+          "ecu",
+          "gw"
+        ],
+        "note": "El gateway solo escucha (listen-only) el bus J1939."
+      },
+      {
+        "id": "ot-it",
+        "label": "Cruce OT a IT",
+        "focus": [
+          "gw",
+          "buffer",
+          "fw",
+          "broker",
+          "db",
+          "dash"
+        ],
+        "note": "Salida unidireccional, buffer local y firewall antes del servidor."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "temp",
+      "type": "external",
+      "label": "DS18B20",
+      "sublabel": "temp. motor",
+      "tag": "1-Wire",
+      "pos": [
+        40,
+        50
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "vib",
+      "type": "external",
+      "label": "Acelerometro",
+      "sublabel": "vibracion rodamiento",
+      "tag": "I2C",
+      "pos": [
+        40,
+        140
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "ecu",
+      "type": "external",
+      "label": "ECU tractor",
+      "sublabel": "motor / diesel",
+      "tag": "CAN J1939",
+      "pos": [
+        40,
+        270
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "mcu",
+      "type": "backend",
+      "label": "Nodo MCU",
+      "sublabel": "firmware C/C++ + watchdog",
+      "tag": "muestreo",
+      "pos": [
+        290,
+        80
+      ],
+      "size": [
+        170,
+        70
+      ]
+    },
+    {
+      "id": "gw",
+      "type": "backend",
+      "label": "Gateway Linux",
+      "sublabel": "Raspberry Pi + Python",
+      "tag": "edge",
+      "pos": [
+        290,
+        250
+      ],
+      "size": [
+        170,
+        70
+      ]
+    },
+    {
+      "id": "buffer",
+      "type": "database",
+      "label": "Buffer local",
+      "sublabel": "SQLite (store & forward)",
+      "pos": [
+        290,
+        415
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "fw",
+      "type": "security",
+      "label": "Firewall / DMZ",
+      "sublabel": "ACL, solo salida",
+      "tag": "TLS",
+      "pos": [
+        560,
+        250
+      ],
+      "size": [
+        150,
+        70
+      ]
+    },
+    {
+      "id": "broker",
+      "type": "messagebus",
+      "label": "Broker MQTT",
+      "sublabel": "TLS + usuario/ACL",
+      "pos": [
+        800,
+        95
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "series de tiempo",
+      "pos": [
+        800,
+        250
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "dash",
+      "type": "frontend",
+      "label": "Dashboard",
+      "sublabel": "Grafana / Django + alertas",
+      "pos": [
+        800,
+        405
+      ],
+      "size": [
+        160,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Zona OT - maquinaria en campo",
+      "wraps": [
+        "temp",
+        "vib",
+        "ecu",
+        "mcu",
+        "gw",
+        "buffer"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Zona IT - servidor del ingenio",
+      "wraps": [
+        "broker",
+        "db",
+        "dash"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "c-temp",
+      "from": "temp",
+      "to": "mcu",
+      "label": "1-Wire",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c-vib",
+      "from": "vib",
+      "to": "mcu",
+      "label": "I2C",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c-mcu-gw",
+      "from": "mcu",
+      "to": "gw",
+      "label": "UART",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 44
+    },
+    {
+      "id": "c-ecu",
+      "from": "ecu",
+      "to": "gw",
+      "label": "CAN (listen-only)",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c-buf",
+      "from": "gw",
+      "to": "buffer",
+      "label": "guarda si no hay red",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 44
+    },
+    {
+      "id": "c-fw",
+      "from": "gw",
+      "to": "fw",
+      "label": "MQTT/TLS saliente",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c-broker",
+      "from": "fw",
+      "to": "broker",
+      "label": "8883",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c-db",
+      "from": "broker",
+      "to": "db",
+      "label": "suscriptor",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 44
+    },
+    {
+      "id": "c-dash",
+      "from": "db",
+      "to": "dash",
+      "label": "SQL",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 44
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Campo (OT)",
+      "items": [
+        "Sensores por 1-Wire, I2C y CAN",
+        "MCU muestrea con tiempos deterministas",
+        "Gateway agrega, valida y sella timestamp"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Frontera",
+      "items": [
+        "Solo conexiones salientes desde OT",
+        "TLS y credenciales por dispositivo",
+        "Nada de control expuesto a Internet"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Servidor (IT)",
+      "items": [
+        "Broker desacopla productor y consumidor",
+        "PostgreSQL guarda las series",
+        "Dashboard y alertas por umbral"
+      ]
+    }
+  ]
+}

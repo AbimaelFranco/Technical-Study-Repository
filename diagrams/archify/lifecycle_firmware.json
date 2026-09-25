@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Maquina de estados del nodo de monitoreo",
+    "output": "lifecycle_firmware.html",
+    "viewBox": [1030, 630],
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    { "id": "main", "label": "Ciclo normal" },
+    { "id": "waiting", "label": "Degradado" },
+    { "id": "exceptions", "label": "Recuperacion" },
+    { "id": "terminal", "label": "Seguridad" }
+  ],
+  "states": [
+    { "id": "init", "type": "start", "label": "INIT", "sublabel": "reloj, GPIO, buses", "lane": "main", "col": 0, "step": "01", "tag": "boot" },
+    { "id": "selftest", "type": "active", "label": "SELF_TEST", "sublabel": "sensores presentes", "lane": "main", "col": 1, "step": "02", "tag": "I2C/1-Wire" },
+    { "id": "sampling", "type": "active", "label": "SAMPLING", "sublabel": "timer periodico", "lane": "main", "col": 2, "step": "03", "tag": "1 Hz" },
+    { "id": "validate", "type": "decision", "label": "VALIDATE", "sublabel": "rango y plausibilidad", "lane": "main", "col": 3, "step": "04", "tag": "check" },
+    { "id": "transmit", "type": "success", "label": "TRANSMIT", "sublabel": "envia por UART", "lane": "main", "col": 4, "step": "05", "tag": "ok" },
+    { "id": "degraded", "type": "waiting", "label": "DEGRADED", "sublabel": "sensor dudoso", "lane": "waiting", "col": 0, "tag": "flag" },
+    { "id": "nolink", "type": "waiting", "label": "NO_LINK", "sublabel": "gateway sin respuesta", "lane": "waiting", "col": 1, "tag": "timeout" },
+    { "id": "fault", "type": "failure", "label": "FAULT", "sublabel": "error recuperable", "lane": "exceptions", "col": 0, "yOffset": 78, "tag": "reintenta" },
+    { "id": "safe", "type": "failure", "label": "SAFE_STATE", "sublabel": "watchdog / reset", "lane": "terminal", "col": 0, "tag": "reset" }
+  ],
+  "transitions": [
+    { "id": "t-degraded", "from": "sampling", "to": "degraded", "variant": "security", "fromSide": "bottom", "toSide": "top", "route": "straight" },
+    { "id": "t-nolink", "from": "validate", "to": "nolink", "variant": "default", "route": "drop" },
+    { "id": "t-fault", "from": "sampling", "to": "fault", "variant": "security", "fromSide": "left", "toSide": "left", "via": [[320, 157], [320, 385]] },
+    { "id": "t-retry", "from": "fault", "to": "sampling", "variant": "emphasis", "fromSide": "left", "toSide": "top", "via": [[20, 385], [20, 80], [402, 80]] },
+    { "id": "t-safe", "from": "nolink", "to": "safe", "variant": "security", "fromSide": "bottom", "toSide": "top", "via": [[480, 336], [480, 432], [402, 432]] }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Ciclo normal", "items": ["Init, autoprueba, muestreo, validacion y transmision", "DEGRADED y NO_LINK no detienen el muestreo"] },
+    { "dot": "rose", "title": "Recuperacion", "items": ["FAULT reintenta mientras quede presupuesto", "SAFE_STATE es reset por watchdog"] }
+  ]
+}
